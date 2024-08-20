@@ -8,7 +8,7 @@ glorpImage.onload = function() {
 };
 
 async function fetchHistoricalData() {
-  const days = 7; // Historial de 1 día
+  const days = 7; // Historial de 7 dias
   try {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/glorp/ohlc?vs_currency=usd&days=${days}`);
     const data = await response.json();
