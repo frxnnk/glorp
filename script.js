@@ -65,14 +65,15 @@ function updateChart() {
           label: 'Precio de Glorp (USD)',
           data: cachedData,
           color: {
-            up: '#84a84b',    // Verde personalizado para velas alcistas
-            down: '#f44336',  // Rojo para velas bajistas
-            unchanged: '#999'
+            up: 'rgba(132, 168, 75, 1)',    // Verde personalizado para velas alcistas
+            down: 'rgba(244, 67, 54, 1)',  // Rojo para velas bajistas
+            unchanged: 'rgba(153, 153, 153, 1)'
           },
           borderColor: '#000000', // Color del borde de las velas
           borderWidth: 1,
           barThickness: 'flex',
-          maxBarThickness: 10
+          maxBarThickness: 16,
+          backgroundColor: 'rgba(245, 40, 145, 0.8)', // Fondo para velas verdes (necesario en algunos casos)
         }]
       },
       options: {
@@ -157,12 +158,13 @@ const glorpPlugin = {
   id: 'glorpPlugin',
   afterRender: function(chart) {
     const ctx = chart.ctx;
-    const imageElement = document.getElementById('glorpImageHTML');
 
     chart.data.datasets[0].data.forEach((candle, index) => {
       if (candle.c > candle.o) { // Verifica si la vela es verde
         const x = chart.scales.x.getPixelForValue(candle.x);
-        const y = chart.scales.y.getPixelForValue(candle.h);
+        const y = chart.scales.y.getPixelForValue(candle.h); // Posición en el máximo de la mecha
+        const closeY = chart.scales.y.getPixelForValue(candle.c); // Posición en el cierre
+        const wickHeight = y - closeY; // Altura de la mecha
 
         // Calcula el ancho de la vela basada en el siguiente punto de datos
         const nextCandle = chart.data.datasets[0].data[index + 1];
@@ -170,18 +172,21 @@ const glorpPlugin = {
         if (nextCandle) {
           barWidth = chart.scales.x.getPixelForValue(nextCandle.x) - x;
         } else {
-          // Si es la última vela, puedes asumir un ancho fijo o el ancho de la vela anterior
-          barWidth = 10; // Ancho predeterminado
+          barWidth = glorpImage.width; // Ancho predeterminado basado en la imagen
         }
 
+        // Ajusta la posición de la imagen en función de la mecha
+        const imageY = closeY - (wickHeight > 0 ? wickHeight / 2 : 32);
+
         // Dibuja la imagen en el canvas
-        ctx.save(); // Guarda el contexto actual
-        ctx.drawImage(glorpImage, x - barWidth / 2, y - 32, barWidth, 64); // Dibuja la imagen ajustando el ancho de la vela
-        ctx.restore(); // Restaura el contexto a como estaba antes de dibujar la imagen
+        ctx.save();
+        ctx.drawImage(glorpImage, x - barWidth / 2, imageY - 32, barWidth, 64);
+        ctx.restore();
       }
     });
   }
 };
+
 
 fetchHistoricalData();
 setInterval(() => fetchRealTimeData(), 60000);
