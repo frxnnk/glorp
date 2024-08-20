@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLORP Graph</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="./glorp.png">
+</head>
+<body>
+  <div id="chartContainer">
+    <h2>GLORP</h2>
+    <div id="chartInfo">Temporalidad: 4 horas | Período: Ultimos 7 dias</div>
+    <div id="lastUpdated">Última actualización: --:--</div>
+    <canvas id="glorpChart"></canvas>
+    <div id="imageContainer">
+      <img src="./glorp.png" id="glorpImageHTML" />
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <script src="script.js"></script>
+</body>
+</html>

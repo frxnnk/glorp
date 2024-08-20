@@ -1,0 +1,89 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    height: 100vh;
+    background-color: #84a84b;
+  }
+  
+  #chartContainer {
+    width: 100%;
+    max-width: 1000px;
+    position: relative;
+    background-color: #1c1c1ed0;
+  }
+  
+  h2, #lastUpdated, #chartInfo {
+    color: #fff;
+  }
+  
+  h2 {
+    font-size: 2em;
+    text-align: center;
+  }
+  
+  #lastUpdated {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #999;
+  }
+  
+  #chartInfo {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #999;
+  }
+  
+  #imageContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  
+  #glorpImageHTML {
+    position: absolute;
+    display: none;
+    height: 64px;
+  }
+  
+  @media (max-width: 768px) {
+    body {
+      padding: 10px;
+    }
+    
+    #chartContainer {
+      width: 100%;
+      max-width: 100%;
+    }
+  
+    h2 {
+      font-size: 1.5em;
+    }
+  
+    #glorpChart {
+      height: 300px;
+    }
+  
+    #glorpImageHTML {
+      width: 32px; 
+      height: 32px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    h2 {
+      font-size: 1.2em;
+    }
+  
+    #lastUpdated, #chartInfo {
+      font-size: 12px;
+    }
+  
+    #glorpImageHTML {
+      width: 24px; 
+      height: 24px;
+    }
+  }
