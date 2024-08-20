@@ -8,12 +8,21 @@
   <link rel="icon" type="image/png" href="./glorp.png">
 </head>
 <body>
-  <div id="chartContainer">
-    <h2>GLORP</h2>
+  <header>
+    <h1>GLORP</h1>
     <div id="chartInfo">Temp: 4 hours | Period: Last 7 days.</div>
     <div id="lastUpdated">Last Update: --:--</div>
-    <canvas id="glorpChart"></canvas>
-  </div>
+  </header>
+
+  <main>
+    <div id="chartContainer">
+      <canvas id="glorpChart"></canvas>
+    </div>
+  </main>
+
+  <footer>
+    <p>Created with ❤️ by frxn</p>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>

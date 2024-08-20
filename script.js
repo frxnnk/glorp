@@ -5,10 +5,11 @@ glorpImage.src = './glorp.png'; // Asegúrate de que la imagen esté en el direc
 
 glorpImage.onload = function() {
   console.log('Imagen cargada correctamente');
+  fetchHistoricalData();
 };
 
 async function fetchHistoricalData() {
-  const days = 7; // Historial de 7 dias
+  const days = 7; // Historial de 7 días
   try {
     const response = await fetch(`https://api.coingecko.com/api/v3/coins/glorp/ohlc?vs_currency=usd&days=${days}`);
     const data = await response.json();
@@ -31,30 +32,35 @@ async function fetchHistoricalData() {
 }
 
 async function fetchRealTimeData() {
-  const response = await fetch(`https://api.coingecko.com/api/v3/coins/glorp/ohlc?vs_currency=usd&days=1`);
-  const data = await response.json();
+  try {
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/glorp/ohlc?vs_currency=usd&days=1`);
+    const data = await response.json();
 
-  if (data && data.length > 0) {
-    const latestData = data[data.length - 1];
-    const newData = {
-      x: new Date(latestData[0]),
-      o: latestData[1],
-      h: latestData[2],
-      l: latestData[3],
-      c: latestData[4]
-    };
+    if (data && data.length > 0) {
+      const latestData = data[data.length - 1];
+      const newData = {
+        x: new Date(latestData[0]),
+        o: latestData[1],
+        h: latestData[2],
+        l: latestData[3],
+        c: latestData[4]
+      };
 
-    cachedData.push(newData);
-    cachedData = cachedData.filter(d => d.x >= new Date().setDate(new Date().getDate() - 1));
+      cachedData.push(newData);
+      cachedData = cachedData.filter(d => d.x >= new Date().setDate(new Date().getDate() - 1));
 
-    updateChart();
-  } else {
-    console.error('Datos en tiempo real no disponibles:', data);
+      updateChart();
+    } else {
+      console.error('Datos en tiempo real no disponibles:', data);
+    }
+  } catch (error) {
+    console.error('Error al obtener datos en tiempo real:', error);
   }
 }
 
 function updateChart() {
   if (chart) {
+    chart.data.datasets[0].data = cachedData;
     chart.update();
   } else {
     const ctx = document.getElementById('glorpChart').getContext('2d');
@@ -64,20 +70,19 @@ function updateChart() {
         datasets: [{
           label: 'Precio de Glorp (USD)',
           data: cachedData,
-          color: {
-            up: 'rgba(132, 168, 75, 1)',    // Verde personalizado para velas alcistas
-            down: 'rgba(244, 67, 54, 1)',  // Rojo para velas bajistas
-            unchanged: 'rgba(153, 153, 153, 1)'
-          },
           borderColor: '#000000', // Color del borde de las velas
-          borderWidth: 1,
-          barThickness: 'flex',
-          maxBarThickness: 16,
-          backgroundColor: 'rgba(245, 40, 145, 0.8)', // Fondo para velas verdes (necesario en algunos casos)
+          backgroundColor: function(context) {
+            const candle = context.raw;
+            if (!candle) return '#000'; // Maneja datos undefined
+            return candle.c > candle.o ? '#84a84b' : '#f44336'; // Verde para alcistas, rojo para bajistas
+          },
+          barThickness: 'flex', // Ajusta el grosor de las velas de forma flexible
+          maxBarThickness: 20,
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
           x: {
             type: 'time',
@@ -94,7 +99,7 @@ function updateChart() {
             ticks: {
               color: '#999',
               autoSkip: true,
-              maxTicksLimit: 20,
+              maxTicksLimit: 10,
             }
           },
           y: {
@@ -133,8 +138,8 @@ function updateChart() {
               mode: 'x',
               limits: {
                 x: {
-                  min: new Date().setDate(new Date().getDate() - 1),
-                  max: new Date().getTime(),
+                  min: cachedData[0] ? cachedData[0].x : undefined,
+                  max: cachedData[cachedData.length - 1] ? cachedData[cachedData.length - 1].x : undefined,
                 }
               }
             }
@@ -154,17 +159,19 @@ function updateChart() {
   lastUpdated.textContent = `Última actualización: ${now.toLocaleTimeString()}`;
 }
 
+// Plugin personalizado para dibujar la imagen en las velas verdes
 const glorpPlugin = {
   id: 'glorpPlugin',
   afterRender: function(chart) {
     const ctx = chart.ctx;
+    const isMobile = window.innerWidth <= 768; // Considera mobile si el ancho es 768px o menos
+    const imageHeight = isMobile ? 32 : 64; // Cambia el tamaño de la imagen en mobile
+    const imageWidth = isMobile ? 16 : 32;
 
     chart.data.datasets[0].data.forEach((candle, index) => {
       if (candle.c > candle.o) { // Verifica si la vela es verde
         const x = chart.scales.x.getPixelForValue(candle.x);
-        const y = chart.scales.y.getPixelForValue(candle.h); // Posición en el máximo de la mecha
-        const closeY = chart.scales.y.getPixelForValue(candle.c); // Posición en el cierre
-        const wickHeight = y - closeY; // Altura de la mecha
+        const y = chart.scales.y.getPixelForValue(candle.c); // Coloca la imagen en el precio de cierre
 
         // Calcula el ancho de la vela basada en el siguiente punto de datos
         const nextCandle = chart.data.datasets[0].data[index + 1];
@@ -172,16 +179,13 @@ const glorpPlugin = {
         if (nextCandle) {
           barWidth = chart.scales.x.getPixelForValue(nextCandle.x) - x;
         } else {
-          barWidth = glorpImage.width; // Ancho predeterminado basado en la imagen
+          barWidth = imageWidth; // Ancho predeterminado si no hay una siguiente vela
         }
 
-        // Ajusta la posición de la imagen en función de la mecha
-        const imageY = closeY - (wickHeight > 0 ? wickHeight / 2 : 32);
-
         // Dibuja la imagen en el canvas
-        ctx.save();
-        ctx.drawImage(glorpImage, x - barWidth / 2, imageY - 32, barWidth, 64);
-        ctx.restore();
+        ctx.save(); // Guarda el contexto actual
+        ctx.drawImage(glorpImage, x - barWidth / 2, y - imageHeight, barWidth, imageHeight); // Dibuja la imagen ajustando el ancho de la vela
+        ctx.restore(); // Restaura el contexto a como estaba antes de dibujar la imagen
       }
     });
   }
@@ -189,4 +193,4 @@ const glorpPlugin = {
 
 
 fetchHistoricalData();
-setInterval(() => fetchRealTimeData(), 60000);
+
